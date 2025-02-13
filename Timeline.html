@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Timeline</title>
+  <!-- Load Plotly from CDN -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- Load the Qt WebChannel script -->
+  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+  <style>
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      background-color: #1e1e1e;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <!-- This placeholder will be replaced with the Plotly chart HTML -->
+  {{plot}}
+
+  <script type="text/javascript">
+    // Set up the QWebChannel communication
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+      window.bridge = channel.objects.bridge;
+    });
+
+    // Wait until the plot is rendered. Plotly inserts the chart into the div with id 'plotly-div'
+    var plotDiv = document.getElementById('plotly-div');
+    if (plotDiv) {
+      // Attach a click handler to send the x-value (timestamp) back to Python.
+      plotDiv.on('plotly_click', function(data) {
+        if (data.points && data.points.length > 0) {
+          var xValue = data.points[0].x;
+          // Call the onPlotlyClick slot on the bridge
+          if (window.bridge && window.bridge.onPlotlyClick) {
+            window.bridge.onPlotlyClick(String(xValue));
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
